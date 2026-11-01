@@ -9,9 +9,13 @@ import { Textarea } from "@/components/ui/textarea"
 import { toast } from "sonner"
 
 const FACTORS = [
-  { name: "problem_identification", label: "Problem Identification" },
-  { name: "innovation_creativity", label: "Innovation & Creativity" },
-  { name: "presentation_skills", label: "Presentation Skills" },
+  { name: "problem_identification", label: "Problem Understanding", max: 15 },
+  { name: "innovation_creativity", label: "Innovation & Creativity", max: 15 },
+  { name: "presentation_skills", label: "Technical Feasibility", max: 15 },
+  { name: "implementation_strategy", label: "Implementation Strategy", max: 15 },
+  { name: "potential_impact_relevance", label: "Potential Impact & Relevance", max: 15 },
+  { name: "scalability_sustainability", label: "Scalability & Sustainability", max: 15 },
+  { name: "presentation_clarity", label: "Presentation Clarity", max: 10 },
 ] as const
 
 export function ScoreForm({
@@ -26,11 +30,9 @@ export function ScoreForm({
   const router = useRouter()
   const [state, action, pending] = useActionState(submitScore, undefined)
 
-  const [values, setValues] = useState<Record<string, number>>({
-    problem_identification: existing?.problem_identification ?? 5,
-    innovation_creativity: existing?.innovation_creativity ?? 5,
-    presentation_skills: existing?.presentation_skills ?? 5,
-  })
+  const [values, setValues] = useState<Record<string, number>>(
+    Object.fromEntries(FACTORS.map((factor) => [factor.name, existing?.[factor.name as keyof ScoreRow] as number ?? Math.ceil(factor.max / 2)])),
+  )
 
   const total = Object.values(values).reduce((a, b) => a + b, 0)
 
@@ -60,7 +62,7 @@ export function ScoreForm({
           <span className="text-sm text-white/70">Total Score</span>
           <span className="text-3xl font-bold tabular-nums">
             {total}
-            <span className="text-base text-white/50"> / 30</span>
+            <span className="text-base text-white/50"> / 100</span>
           </span>
         </div>
       </div>
@@ -86,7 +88,7 @@ export function ScoreForm({
               <button
                 type="button"
                 aria-label={`Increase ${f.label}`}
-                onClick={() => setValues((v) => ({ ...v, [f.name]: Math.min(10, v[f.name] + 1) }))}
+                onClick={() => setValues((v) => ({ ...v, [f.name]: Math.min(f.max, v[f.name] + 1) }))}
                 className="neu-sm flex size-8 items-center justify-center rounded-full text-lg font-bold leading-none text-primary transition active:scale-95"
               >
                 +
@@ -98,7 +100,7 @@ export function ScoreForm({
             name={f.name}
             type="range"
             min={0}
-            max={10}
+            max={f.max}
             step={1}
             value={values[f.name]}
             onChange={(e) => setValues((v) => ({ ...v, [f.name]: Number(e.target.value) }))}
@@ -106,7 +108,7 @@ export function ScoreForm({
           />
           <div className="mt-1 flex justify-between text-[10px] text-muted-foreground">
             <span>0</span>
-            <span>10</span>
+            <span>{f.max}</span>
           </div>
         </div>
       ))}

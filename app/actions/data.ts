@@ -47,6 +47,10 @@ export type ScoreRow = {
   problem_identification: number
   innovation_creativity: number
   presentation_skills: number
+  implementation_strategy: number
+  potential_impact_relevance: number
+  scalability_sustainability: number
+  presentation_clarity: number
   remark: string | null
   updated_at: string
   judges?: { judge_name: string } | null
@@ -155,7 +159,7 @@ export async function generateKey(_prev: { error?: string; ok?: boolean } | unde
   const judge_name = String(formData.get("judge_name") ?? "").trim()
   if (!judge_name) return { error: "Enter the judge's name." }
 
-  const access_key = `SIH-${randomBytes(12).toString("hex").toUpperCase()}`
+  const access_key = `ANVESH26-${randomBytes(12).toString("hex").toUpperCase()}`
   const supabase = createAdminClient()
   const { error } = await supabase.from("judges").insert({ judge_name, access_key })
   if (error) return { error: "Could not generate key. Please try again." }
@@ -226,7 +230,11 @@ export async function submitScore(
 
   const pi = clampScore(formData.get("problem_identification"))
   const ic = clampScore(formData.get("innovation_creativity"))
-  const ps = clampScore(formData.get("presentation_skills"))
+  const ps = clampScore(formData.get("presentation_skills"), 15)
+  const implementationStrategy = clampScore(formData.get("implementation_strategy"), 15)
+  const potentialImpactRelevance = clampScore(formData.get("potential_impact_relevance"), 15)
+  const scalabilitySustainability = clampScore(formData.get("scalability_sustainability"), 15)
+  const presentationClarity = clampScore(formData.get("presentation_clarity"), 10)
   const remark = emptyToNull(formData.get("remark"))
 
   const supabase = createAdminClient()
@@ -246,6 +254,10 @@ export async function submitScore(
         problem_identification: pi,
         innovation_creativity: ic,
         presentation_skills: ps,
+        implementation_strategy: implementationStrategy,
+        potential_impact_relevance: potentialImpactRelevance,
+        scalability_sustainability: scalabilitySustainability,
+        presentation_clarity: presentationClarity,
         remark,
         updated_at: new Date().toISOString(),
       })
@@ -258,6 +270,10 @@ export async function submitScore(
       problem_identification: pi,
       innovation_creativity: ic,
       presentation_skills: ps,
+      implementation_strategy: implementationStrategy,
+      potential_impact_relevance: potentialImpactRelevance,
+      scalability_sustainability: scalabilitySustainability,
+      presentation_clarity: presentationClarity,
       remark,
     })
     if (error) {
@@ -280,8 +296,8 @@ function emptyToNull(v: FormDataEntryValue | null): string | null {
   return s.length ? s : null
 }
 
-function clampScore(v: FormDataEntryValue | null): number {
+function clampScore(v: FormDataEntryValue | null, max = 15): number {
   const n = Math.round(Number(v ?? 0))
   if (Number.isNaN(n)) return 0
-  return Math.max(0, Math.min(10, n))
+  return Math.max(0, Math.min(max, n))
 }
